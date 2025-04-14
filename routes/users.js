@@ -10,6 +10,7 @@ router.get('/', function(req, res, next) {
 });
 
 router.post('/register', async function (req, res, next) {
+  console.log("Datos recibidos en /register:", req.body);
   try{
     const { username, password } = req.body;
 
@@ -18,7 +19,7 @@ router.post('/register', async function (req, res, next) {
 
     const newUser = new User({ username, password: hashedPassword });
     await newUser.save();
-    res.status(201).json({ error: "Usuario registrado exitosamente" });
+    res.status(201).json({ message: "Usuario registrado exitosamente" });
   
   }catch (error) {
     console.log(error);
@@ -26,6 +27,7 @@ router.post('/register', async function (req, res, next) {
   }
 })
 router.post('/login', async function (req, res, next) {
+  console.log("Datos recibidos en /login:", req.body);
   try{
     const { username, password } = req.body;
 
@@ -43,7 +45,7 @@ router.post('/login', async function (req, res, next) {
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     })
-    res.json({ message: "Inicio de Sesion Exitoso", token });
+    res.json({ message: "Inicio de sesión exitoso", token });
   }catch(error) {
     console.log(error);
     res.status(500).json({ message: "Error al iniciar sesion", "Descripcion": error.toString()});
