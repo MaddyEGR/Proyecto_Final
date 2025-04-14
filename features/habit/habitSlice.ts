@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import { fetchHabits } from "./habitAPI";
+import { fetchHabits, fetchAddHabit } from "./habitAPI";
 
 type Habit = {
     _id: string;
@@ -10,6 +10,17 @@ type Habit = {
     lastDone: Date;
     lastUpdate: Date;
     startedAt: Date;
+};
+
+type markAsDoneThunkParams = {
+    _id: string,
+    token: string
+};
+
+type addHabitThunkParams = {
+    token: string,
+    title: string,
+    description: string
 };
 
 type HabitState = {
@@ -24,21 +35,41 @@ const initialState: HabitState = {
     error: {}
 };
 
-export const fetchHabitsThunk = createAsyncThunk("habit/fetchHabits", async () => {
-        return await fetchHabits();
+export const fetchHabitsThunk = createAsyncThunk("habit/fetchHabits", async (token:string, {rejectWithValue}) => {
+        const response = await fetchHabits(token);
+        const responseJson = await response.json();
+        if (!response.ok) {
+            return rejectWithValue("Error al obtener los habitos");
+        }
+            return responseJson;
 });
 
-export const markAsDoneThunk = createAsyncThunk("habit/markAsDone", async (_id: string, {rejectWithValue}) => {
+export const markAsDoneThunk = createAsyncThunk("habit/markAsDone", async ({_id, token }: markAsDoneThunkParams, {rejectWithValue}) => {
     const response = await fetch(`http://localhost:3001/api/habits/markasdone${_id}/done`, {
-        method: "POST",
+        method: "PATCH",
+        headers: { Authorization: 'Bearer ' + token },
     });
+
     const responseJson = await response.json();
     if (!response.ok) {
         return rejectWithValue("Fallo al marcar como hecho");
     }else if (responseJson.message.toString() === "Habito reiniciado") {
         return rejectWithValue(responseJson.message);
     }else{
-        return responseJson;
+        return responseJson.message;
+    }
+});
+
+export const fetchAddHabitThunk = createAsyncThunk("habit/fetchAddHabit", async ({token, title, description }: addHabitThunkParams, {rejectWithValue}) => { 
+    const response = await fetchAddHabit (token, title, description);
+    const responseJson = await response.json();
+
+    if (!response.ok) {
+        return rejectWithValue("Fallo al agregar el habito");
+    }else if (responseJson.message.toString() === "Error al crear el habito") {
+        return rejectWithValue(responseJson.message);
+    }else{
+        return responseJson.token;
     }
 });
 
@@ -65,18 +96,13 @@ const habitSlice = createSlice ({
         builder.addCase(fetchHabitsThunk.fulfilled, (state, action) => {
             state.habits =Array.isArray (action.payload) ? action.payload : [];
         }).addCase(markAsDoneThunk.fulfilled, (state, action) => {
-            const habitId = action.meta.arg;
-             if (!state.status[habitId]) {
-                 state.status[habitId] = "idle"; // Establecer un valor predeterminado
-             }
-            state.status[action.meta.arg] = "success";
-            state.error[action.meta.arg] = null;
+            state.status[action.meta.arg._id] = "success";
+            state.error[action.meta.arg._id] = null;
         }).addCase(markAsDoneThunk.rejected, (state, action) => {
-            if (!state.status[habitId]) {
-                state.status[habitId] = "idle"; // Establecer un valor predeterminado
-            }
-            state.status[action.meta.arg] = "failed";
-            state.error[action.meta.arg] = action.payload as string;
+            state.status[action.meta.arg._id] = "failed";
+            state.error[action.meta.arg._id] = action.payload as string;
+        }).addCase(fetchAddHabitThunk.fulfilled, (state, action) => {
+            state.habits.push(action.payload);
         });
     }
 });
