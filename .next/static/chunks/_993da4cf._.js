@@ -25,7 +25,7 @@ const fetchAddHabit = async (token, title, description)=>{
         method: "POST",
         headers: {
             Authorization: 'Bearer ' + token,
-            'Cintent-Type': 'application/json'
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
             "title": title,
@@ -33,9 +33,9 @@ const fetchAddHabit = async (token, title, description)=>{
         })
     });
     if (!response.ok) {
-        throw new Error("Error al obtener los habitos");
+        throw new Error("Error al crear el habito");
     }
-    return response;
+    return response.json();
 };
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(module, globalThis.$RefreshHelpers$);
@@ -73,7 +73,7 @@ const fetchHabitsThunk = (0, __TURBOPACK__imported__module__$5b$project$5d2f$nod
     return responseJson;
 });
 const markAsDoneThunk = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$reduxjs$2f$toolkit$2f$dist$2f$redux$2d$toolkit$2e$modern$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__["createAsyncThunk"])("habit/markAsDone", async ({ _id, token }, { rejectWithValue })=>{
-    const response = await fetch(`http://localhost:3001/api/habits/markasdone${_id}/done`, {
+    const response = await fetch(`http://localhost:3001/api/habits/markasdone/${_id}`, {
         method: "PATCH",
         headers: {
             Authorization: 'Bearer ' + token
