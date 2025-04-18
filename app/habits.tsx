@@ -64,7 +64,7 @@ export default function Habits({ habits }: HabitProps) {
                                         className="px-2 py-1 text-sm text-white bg-blue-500 rounded"
                                         onClick={() => handleMarkAsDone(dispatch, habit._id, user ? user.toString(): '')}
                                     >
-                                        {habitStatus === "cargando" ? "Procesando" : "Completado"}
+                                        {habitStatus === "loading" ? "Procesando" : "Completado"}
                                     </button>
                                     {habitStatus === "failed" && <span className="text-red-500">{habitError}</span>}
                                     {habitStatus === "success" && <span className="text-green-500">Ya se ha Completado</span>}
